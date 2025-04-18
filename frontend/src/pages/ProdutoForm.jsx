@@ -25,11 +25,13 @@ const ProdutoForm = () => {
                 
                 <TextField label="Nome" fullWidth margin="normal"
                     {...register('nome', { required: 'Nome é obrigatório' })}
-                    error={!!errors.nome} helperText={errors.nome?.message} />
+                    error={!!errors.nome} helperText={errors.nome?.message} 
+                    inputProps={{ maxLength: 100 }} />
 
                 <TextField label="Descrição" fullWidth margin="normal"
                     {...register('descricao', { required: 'Descrição é obrigatória' })}
-                    error={!!errors.descricao} helperText={errors.descricao?.message} />
+                    error={!!errors.descricao} helperText={errors.descricao?.message} 
+                    inputProps={{ maxLength: 200 }} />
 
                 <Controller name="valor_unitario" control={control} defaultValue=""
                     rules={{ required: 'Valor unitário é obrigatório' }} render={({ field }) => (

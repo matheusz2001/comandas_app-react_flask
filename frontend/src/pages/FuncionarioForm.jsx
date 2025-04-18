@@ -21,10 +21,14 @@ const FuncionarioForm = () => {
                 
                 <Controller
                     name="nome" control={control} defaultValue="" rules={{ 
-                        required: 'Nome é obrigatório' }} render={({ field }) => (
+                        required: 'Nome é obrigatório', maxLength: {
+                            value: 100,
+                            message: 'Nome deve ter no máximo 100 caracteres',
+                          }, }} render={({ field }) => (
                         
                         <TextField {...field} label="Nome" fullWidth margin="normal"
-                            error={!!errors.nome} helperText={errors.nome?.message} />
+                            error={!!errors.nome} helperText={errors.nome?.message} inputProps={{
+                                maxLength: 100   }} />
                     )} />
 
                 <Controller name="cpf" control={control} defaultValue=""

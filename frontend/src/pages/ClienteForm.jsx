@@ -19,7 +19,8 @@ const ClienteForm = () => {
             <Box sx={{ backgroundColor: 'white', padding: 2, borderRadius: 3, mb: 2 }}>
                 
                 <TextField label="Nome" fullWidth margin="normal"
-                    {...register('nome', { required: 'Nome é obrigatório' })} error={!!errors.nome} helperText={errors.nome?.message} />
+                    {...register('nome', { required: 'Nome é obrigatório' })} error={!!errors.nome} helperText={errors.nome?.message} 
+                    inputProps={{ maxLength: 100 }} />
 
                 <Controller name="cpf" control={control} defaultValue=""
                     rules={{ required: 'CPF é obrigatório' }} render={({ field }) => (
