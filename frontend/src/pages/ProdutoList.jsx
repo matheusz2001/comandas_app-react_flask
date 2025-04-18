@@ -30,8 +30,8 @@ function ProdutoList() {
                 <TableBody>
                     <TableRow key={1}>
                         <TableCell>1</TableCell>
-                        <TableCell>Produto Pastel</TableCell>
-                        <TableCell>Carne e ovo</TableCell>
+                        <TableCell>Matheus Felipe Ribeiro Cruz de Mello</TableCell>
+                        <TableCell>desc</TableCell>
                         <TableCell>18</TableCell>
                         <TableCell></TableCell>
                         <TableCell>

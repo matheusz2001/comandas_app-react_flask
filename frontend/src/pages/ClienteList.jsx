@@ -29,7 +29,7 @@ function ClienteList() {
                 <TableBody>
                     <TableRow key={1}>
                         <TableCell>40</TableCell>
-                        <TableCell>Cliente</TableCell>
+                        <TableCell>Matheus Felipe Ribeiro Cruz de Mello</TableCell>
                         <TableCell>222.313.541-65</TableCell>
                         <TableCell>988542431</TableCell>
                         <TableCell>

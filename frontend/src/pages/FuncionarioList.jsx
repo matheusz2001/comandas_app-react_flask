@@ -29,7 +29,7 @@ function FuncionarioList() {
                 <TableBody>
                     <TableRow key={1}>
                         <TableCell>89</TableCell>
-                        <TableCell>Abc Bolinhas</TableCell>
+                        <TableCell>Matheus Felipe Ribeiro Cruz de Mello</TableCell>
                         <TableCell>093.931.554-00</TableCell>
                         <TableCell>123</TableCell>
                         <TableCell>
