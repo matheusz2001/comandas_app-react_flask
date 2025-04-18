@@ -24,7 +24,7 @@ const LoginForm = () => {
 
     return (
 
-        <Box component="form" className="LoginForm-Container" onSubmit={handleSubmit(onSubmit)} sx={{ backgroundColor: '#888888', padding: 1, borderRadius: 2, mt: 2 }}>
+        <Box component="form" className="LoginForm" onSubmit={handleSubmit(onSubmit)} sx={{ backgroundColor: '#999999', padding: 1, borderRadius: 2, mt: 2 }}>
             
             <Toolbar sx={{ backgroundColor: '#E0E0E0', padding: 1, borderRadius: 2, mb: 2, display: 'flex', justifyContent: 'space-between' }}>
                 <Typography variant="h6" color="black">Login</Typography>

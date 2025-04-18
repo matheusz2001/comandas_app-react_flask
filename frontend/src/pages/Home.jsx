@@ -4,7 +4,7 @@ import '../styles/Home.css'
 
 const Home = () => {
     return (
-        <Box className="Home-Box" sx={{ backgroundColor: '#888888', padding: 1, borderRadius: 3, mt: 2 }}>
+        <Box className="Home-Box" sx={{ backgroundColor: 'white', padding: 1, borderRadius: 3, mt: 2 }}>
             
             <Toolbar sx={{ backgroundColor: '#E0E0E0', padding: 1, borderRadius: 2, mb: 2, display: 'flex', justifyContent: 'space-between' }}>
                 <Typography variant="h6" color="black">Home</Typography>

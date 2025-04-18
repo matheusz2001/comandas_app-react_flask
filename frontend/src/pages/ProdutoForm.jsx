@@ -11,8 +11,8 @@ const ProdutoForm = () => {
     };
 
     return (
-        <Box className="ProdutoForm-Container" component="form" onSubmit={handleSubmit(onSubmit)}
-            sx={{ backgroundColor: '#888888', padding: 2, borderRadius: 1, mt: 2 }} >
+        <Box className="ProdutoForm" component="form" onSubmit={handleSubmit(onSubmit)}
+            sx={{ backgroundColor: '#999999', padding: 2, borderRadius: 1, mt: 2 }} >
             
             <Toolbar sx={{ backgroundColor: '#E0E0E0', padding: 1, borderRadius: 2, mb: 2,
                     display: 'flex', justifyContent: 'space-between' }} >

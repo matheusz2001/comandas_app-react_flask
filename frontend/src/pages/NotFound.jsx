@@ -5,7 +5,7 @@ import '../styles/NotFound.css'
 const NotFound = () => {
    
     return (
-        <Box className="NotFound-Container" sx={{ backgroundColor: '#888888', padding: 1, borderRadius: 1, mt: 2 }}>
+        <Box className="NotFound-Container" sx={{ backgroundColor: '#999999', padding: 1, borderRadius: 1, mt: 2 }}>
             
             <Toolbar sx={{ backgroundColor: '#E0E0E0', padding: 1, borderRadius: 2, mb: 2, display: 'flex', justifyContent: 'space-between' }}>
                 <Typography variant="h6" color="black">404 - NotFound</Typography>
