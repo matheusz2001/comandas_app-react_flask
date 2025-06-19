@@ -1,11 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Toolbar, Typography, IconButton, Button, useMediaQuery, } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import '../styles/FuncionarioList.css';
 import { getFuncionarios, deleteFuncionario } from '../services/funcionarioService';
 import { toast } from 'react-toastify';
 import { useTheme } from '@mui/material/styles';
 import { Edit, Delete, Visibility, FiberNew } from '@mui/icons-material';
+import { PictureAsPdf } from '@mui/icons-material';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
+import '../styles/FuncionarioList.css';
 
 function FuncionarioList() {
 
@@ -21,10 +24,65 @@ function FuncionarioList() {
     const fetchFuncionarios = async () => {
         try {
             const data = await getFuncionarios();
-            setFuncionarios(data);
+
+            const resultado = Array.isArray(data) && data.length === 2 ? data[0] : data;
+
+            setFuncionarios(resultado);
         } catch (error) {
             console.error('Erro ao buscar funcionários:', error);
         }
+    };
+
+    const generatePDF = () => {
+        const doc = new jsPDF();
+
+        doc.setFontSize(18);
+        doc.setTextColor(50, 50, 50);
+        doc.text('Lista de Funcionários', 14, 22);
+
+        const tableColumn = isSmallScreen
+            ? ['ID', 'Nome', 'CPF']
+            : ['ID', 'Nome', 'CPF', 'Matrícula', 'Telefone', 'Grupo'];
+
+        const tableRows = funcionarios.map(func => {
+            const row = [
+                func.id_funcionario,
+                func.nome,
+                formatCPF(func.cpf),
+            ];
+
+            if (!isSmallScreen) {
+                row.push(
+                    func.matricula,
+                    formatTelefone(func.telefone),
+                    func.grupo
+                );
+            }
+
+            return row;
+        });
+
+        doc.autoTable({
+            head: [tableColumn],
+            body: tableRows,
+            startY: 30,
+            theme: 'grid',
+            headStyles: {
+                fillColor: [200, 200, 200], 
+                textColor: [0, 0, 0],      
+                halign: 'center',
+            },
+            styles: {
+                fontSize: 10,
+                cellPadding: 4,
+                textColor: [0, 0, 0],      
+            },
+            alternateRowStyles: {
+                fillColor: [240, 240, 240], 
+            },
+        });
+
+        doc.save('funcionarios.pdf');
     };
 
     const handleDeleteClick = (funcionario) => {
@@ -69,10 +127,11 @@ function FuncionarioList() {
 
     return (
         <TableContainer className="Funcionario-Table" component={Paper}>
-            
+
             <Toolbar sx={{ backgroundColor: '#E0E0E0', padding: 2, borderRadius: 1, mb: 2, display: 'flex', justifyContent: 'space-between' }}>
                 <Typography variant="h6" color="black">Funcionários</Typography>
                 <Button color="black" onClick={() => navigate('/funcionario')} startIcon={<FiberNew />}>Novo</Button>
+                <Button color="secondary" onClick={generatePDF} startIcon={<PictureAsPdf />}> Exportar PDF </Button>
             </Toolbar>
 
             <Table>

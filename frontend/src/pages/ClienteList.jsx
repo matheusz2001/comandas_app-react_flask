@@ -5,6 +5,10 @@ import { useNavigate } from 'react-router-dom';
 import { getClientes, deleteCliente } from '../services/clienteService';
 import { toast } from 'react-toastify';
 import { useTheme } from '@mui/material/styles';
+import { Box } from '@mui/material';
+import { PictureAsPdf } from '@mui/icons-material';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 import '../styles/ClienteList.css';
 
 function ClienteList() {
@@ -21,10 +25,61 @@ function ClienteList() {
     const fetchClientes = async () => {
         try {
             const data = await getClientes();
-            setClientes(data);
+            const resultado = Array.isArray(data) && data.length === 2 ? data[0] : data;
+
+            setClientes(resultado);
         } catch (error) {
             console.error('Erro ao buscar clientes:', error);
         }
+    };
+
+    const generatePDF = () => {
+        const doc = new jsPDF();
+
+        doc.setFontSize(20);
+        doc.setTextColor(50, 50, 50);
+        doc.text('Lista de Clientes', 14, 22);
+
+        const tableColumn = isSmallScreen
+            ? ['ID', 'Nome', 'CPF']
+            : ['ID', 'Nome', 'CPF', 'Telefone'];
+
+        const tableRows = clientes.map(cliente => {
+            const row = [
+                cliente.id_cliente,
+                cliente.nome,
+                formatCPF(cliente.cpf),
+            ];
+
+            if (!isSmallScreen) {
+                row.push(formatTelefone(cliente.telefone));
+            }
+
+            return row;
+        });
+
+        doc.autoTable({
+            head: [tableColumn],
+            body: tableRows,
+            startY: 30,
+            theme: 'grid',
+            headStyles: {
+                fillColor: [200, 200, 200], 
+                textColor: [0, 0, 0],       
+                halign: 'center',
+                fontStyle: 'bold',
+            },
+            styles: {
+                fontSize: 11,
+                cellPadding: 5,
+                textColor: [0, 0, 0],      
+            },
+            alternateRowStyles: {
+                fillColor: [240, 240, 240],
+            },
+        });
+
+        doc.save('clientes.pdf');
     };
 
     const handleDeleteClick = (cliente) => {
@@ -71,10 +126,11 @@ function ClienteList() {
 
     return (
         <TableContainer className="Cliente-Table" component={Paper}>
-            
+
             <Toolbar sx={{ backgroundColor: '#E0E0E0', padding: 2, borderRadius: 1, mb: 2, display: 'flex', justifyContent: 'space-between' }}>
                 <Typography variant="h6" color="black">Clientes</Typography>
                 <Button color="black" onClick={() => navigate('/cliente')} startIcon={<FiberNew />}>Novo</Button>
+                <Button color="secondary" onClick={generatePDF} startIcon={<PictureAsPdf />}> Exportar PDF </Button>
             </Toolbar>
 
             <Table>
@@ -112,7 +168,7 @@ function ClienteList() {
                 </TableBody>
             </Table>
         </TableContainer>
-        
+
     );
 }
 

@@ -2,6 +2,24 @@ import axios from 'axios';
 
 const PROXY_URL = import.meta.env.VITE_PROXY_BASE_URL + "funcionario/";
 
+// Login pelo Local
+export const loginLocal = async (username, password) => {
+  const response = await axios.post(`${PROXY_URL}login_local`, {
+    username,
+    senha: password,     
+  });
+  return response.data;
+};
+
+// Login pela API
+export const loginFuncionario = async (cpf, password) => {
+  const response = await axios.post(`${PROXY_URL}login`, {
+    cpf,
+    senha: password,
+  });
+  return response.data;
+};
+
 // Obter todos os funcionários
 export const getFuncionarios = async () => {
   const response = await axios.get(`${PROXY_URL}all`);
@@ -11,7 +29,7 @@ export const getFuncionarios = async () => {
 // Obter um funcionário por ID
 export const getFuncionarioById = async (id) => {
   const response = await axios.get(`${PROXY_URL}one`, { params: { id_funcionario: id } });
-  return response.data[0];
+  return response.data;
 };
 
 // Criar um novo funcionário

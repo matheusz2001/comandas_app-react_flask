@@ -9,6 +9,9 @@ import { getProdutos, deleteProduto } from '../services/produtoService';
 import { toast } from 'react-toastify';
 // useTheme: usado para acessar o tema do Material-UI.
 import { useTheme } from '@mui/material/styles';
+import { PictureAsPdf } from '@mui/icons-material';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 import '../styles/ProdutoList.css'
 
 function ProdutoList() {
@@ -37,10 +40,96 @@ function ProdutoList() {
     const fetchProdutos = async () => {
         try {
             const data = await getProdutos();
-            setProdutos(data);
+
+            const resultado = Array.isArray(data) && data.length === 2 ? data[0] : data;
+
+            setProdutos(resultado);
         } catch (error) {
             console.error('Erro ao buscar produtos:', error);
+            toast.error('Erro ao buscar produtos.');
         }
+    };
+
+    const generatePDF = () => {
+        const doc = new jsPDF();
+
+        doc.setFontSize(18);
+        doc.setTextColor(50, 50, 50); 
+        doc.text("Lista de Produtos", 14, 22);
+
+        const isSmallScreen = window.innerWidth < 600;
+        const tableColumn = isSmallScreen
+            ? ["ID", "Nome"]
+            : ["ID", "Nome", "Descrição", "Valor Unitário", "Foto"];
+
+        const tableRows = [];
+
+        produtos.forEach(produto => {
+            if (isSmallScreen) {
+                tableRows.push([produto.id_produto, produto.nome]);
+            } else {
+                tableRows.push([
+                    produto.id_produto,
+                    produto.nome,
+                    produto.descricao || "",
+                    `R$ ${Number(produto.valor_unitario).toFixed(2)}`,
+                    produto.foto ? produto.foto : null
+                ]);
+            }
+        });
+
+        const startY = 30;
+
+        const commonTableOptions = {
+            startY,
+            head: [tableColumn],
+            theme: 'grid',
+            headStyles: {
+                fillColor: [200, 200, 200],  
+                textColor: [0, 0, 0],        
+                halign: 'center',
+                fontStyle: 'bold',
+            },
+            styles: {
+                fontSize: isSmallScreen ? 10 : 12,
+                cellPadding: isSmallScreen
+                    ? 10
+                    : { top: 12, bottom: 12, left: 12, right: 6 },
+                textColor: [0, 0, 0],       
+            },
+            alternateRowStyles: {
+                fillColor: [240, 240, 240],   
+            },
+        };
+
+        if (isSmallScreen) {
+            doc.autoTable({
+                ...commonTableOptions,
+                body: tableRows,
+            });
+        } else {
+            doc.autoTable({
+                ...commonTableOptions,
+                body: tableRows.map(row => row.slice(0, 4)),
+                didDrawCell: (data) => {
+                    if (data.column.index === 4 && data.cell.section === 'body') {
+                        const fotoBase64 = tableRows[data.row.index][4];
+                        if (fotoBase64) {
+                            const x = data.cell.x + 3;
+                            const y = data.cell.y + 4;
+                            const imgWidth = 22;
+                            const imgHeight = 22;
+                            doc.addImage(`data:image/jpeg;base64,${fotoBase64}`, 'JPEG', x, y, imgWidth, imgHeight);
+                        } else {
+                            doc.setFontSize(10);
+                            doc.text('Sem imagem', data.cell.x + 2, data.cell.y + 12);
+                        }
+                    }
+                }
+            });
+        }
+
+        doc.save("produtos.pdf");
     };
 
     // handleDeleteClick: função que exibe um toast de confirmação antes de excluir.
@@ -80,6 +169,7 @@ function ProdutoList() {
             <Toolbar sx={{ backgroundColor: '#E0E0E0', padding: 2, borderRadius: 1, mb: 2, display: 'flex', justifyContent: 'space-between' }}>
                 <Typography variant="h6" color="black">Produtos</Typography>
                 <Button color="black" onClick={() => navigate('/produto')} startIcon={<FiberNew />}>Novo</Button>
+                <Button color="secondary" onClick={generatePDF} startIcon={<PictureAsPdf />}> Exportar PDF </Button>
             </Toolbar>
 
             <Table>
@@ -109,17 +199,11 @@ function ProdutoList() {
                                     <TableCell>
                                         {produto.foto ? (
                                             <img
-                                                src={produto.foto}
+                                                src={`data:image/jpeg;base64,${produto.foto}`}
                                                 alt={produto.nome}
-                                                style={{
-                                                    maxWidth: '100px',
-                                                    maxHeight: '100px',
-                                                    borderRadius: '8px' }} />
-                                        ) : (
-                                            <Typography variant="body2" color="textSecondary">
-                                                Sem foto
-                                            </Typography>
-                                        )}
+                                                style={{ width: 100, height: 100, objectFit: 'cover', borderRadius: 4 }}
+                                            />
+                                        ) : 'Sem imagem'}
                                     </TableCell>
                                     <TableCell>{produto.descricao}</TableCell>
                                 </>

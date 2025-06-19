@@ -16,6 +16,9 @@ PROXY_DEBUG = os.getenv("PROXY_DEBUG", False)
 
 API_SSL_VERIFY = True if os.getenv('API_SSL_VERIFY', True).lower() == 'true' else False
 
+LOCAL_USERNAME = os.getenv("LOCAL_USERNAME", "admin")
+LOCAL_PASSWORD = os.getenv("LOCAL_PASSWORD", "bolinhas123")
+
 API_URL = os.getenv('API_URL', 'https://127.0.0.1:4443')
 API_USERNAME_TOKEN = os.getenv('API_USERNAME_TOKEN', 'abc')
 API_PASSWORD_TOKEN = os.getenv('API_PASSWORD_TOKEN', 'bolinhas')

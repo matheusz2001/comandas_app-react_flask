@@ -89,16 +89,22 @@ const FuncionarioForm = () => {
 
     const onSubmit = async (data) => {
         try {
-            let retorno;
+            let retornoArray;
             if (id) {
-                retorno = await updateFuncionario(id, data);
+                retornoArray = await updateFuncionario(id, data);
             } else {
-                retorno = await createFuncionario(data);
+                retornoArray = await createFuncionario(data);
             }
+
+            // Pega o objeto do primeiro elemento
+            const retorno = retornoArray[0];
+
+            console.log('Resposta formatada:', retorno);
 
             if (!retorno || !retorno.id) {
                 throw new Error(retorno.erro || "Erro ao salvar funcionário.");
             }
+
             toast.success(`Funcionário salvo com sucesso. ID: ${retorno.id}`, { position: "top-center" });
             navigate('/funcionarios');
         } catch (error) {

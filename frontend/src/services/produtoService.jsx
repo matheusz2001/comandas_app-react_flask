@@ -16,29 +16,24 @@ export const getProdutoById = async (id) => {
 
 // Criar um novo produto
 export const createProduto = async (produto) => {
-  // Cria um objeto FormData para enviar os dados do produto
-  const formData = new FormData();
-  formData.append('nome', produto.nome);
-  formData.append('descricao', produto.descricao);
-  formData.append('valor_unitario', produto.valor_unitario);
-  formData.append('foto', produto.foto);
-  // antes de enviar para o backend, altera o enctype para multipart/form-data, permitindo o envio de arquivos
-  const response = await axios.post(`${PROXY_URL}`, formData, { headers: { 'Content-Type': 'multipart/form-data' } } );
-  return response.data;
+  try {
+    const response = await axios.post(PROXY_URL, produto);
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error;
+  }
 };
+
 
 // Atualizar um produto existente
 export const updateProduto = async (id, produto) => {
-  // Cria um objeto FormData para enviar os dados do produto
-  const formData = new FormData();
-  formData.append('id_produto', id);
-  formData.append('nome', produto.nome);
-  formData.append('descricao', produto.descricao);
-  formData.append('valor_unitario', produto.valor_unitario);
-  formData.append('foto', produto.foto);
-  // antes de enviar para o backend, altera o enctype para multipart/form-data, permitindo o envio de arquivos
-  const response = await axios.put(`${PROXY_URL}`, formData, { params: { id_produto: id } }, { headers: { 'Content-Type': 'multipart/form-data' } });
-  return response.data;
+  try {
+    const produtoComId = { ...produto, id_produto: id };
+    const response = await axios.put(`${PROXY_URL}`, produtoComId);
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error;
+  }
 };
 
 // Deletar um produto

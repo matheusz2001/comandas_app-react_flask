@@ -34,6 +34,19 @@ const ProdutoForm = () => {
 
     // Se opr for 'view', será utilizada para ajustar o formulário como somente leitura.
     const isReadOnly = opr === 'view';
+    const [imagemBase64, setImagemBase64] = useState(null);
+
+    const convertToBase64 = (file) => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                const base64 = reader.result.split(',')[1];
+                resolve({ base64, mimeType: file.type });
+            };
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+        });
+    };
 
     // title: variável que define o título do formulário com base na operação e no id.
     let title;
@@ -45,85 +58,62 @@ const ProdutoForm = () => {
         title = "Novo Produto";
     }
 
-    // Estado para armazenar a foto selecionada e sua pré-visualização
-    const [foto, setFoto] = useState(null);
-    const [fotoPreview, setFotoPreview] = useState(null);
-    // Função para lidar com a seleção de arquivo.
-    // É chamada na função onchange do input file.
-    // Após redidensionar a imagem, alterando o estado da foto e a pré-visualização.
-    const handleFileChange = async (event) => {
-        // Verifica se um arquivo foi selecionado
-        // O event.target.files é uma lista de arquivos selecionados pelo usuário.
-        const file = event.target.files[0];
-        if (file) {
-            try {
-                // Configurações para redimensionar e comprimir a imagem
-                const options = {
-                    maxSizeMB: 1, // Tamanho máximo do arquivo em MB
-                    maxWidthOrHeight: 100, // Largura ou altura máxima em pixels
-                    useWebWorker: true, // Usa Web Workers para melhorar a performance
-                };
-                // Redimensiona e comprime a imagem
-                const compressedFile = await imageCompression(file, options);
-                // Atualiza o estado com a imagem redimensionada
-                setFoto(compressedFile);
-                // Gera a URL para pré-visualização
-                const previewUrl = URL.createObjectURL(compressedFile);
-                setFotoPreview(previewUrl);
-            } catch (error) {
-                console.error("Erro ao redimensionar a imagem:", error);
-                toast.error("Erro ao redimensionar a imagem.");
-            }
-        } else {
-            setFoto(null);
-            setFotoPreview(null);
-        }
-
-    };
-
     useEffect(() => {
         if (id) {
-            // define uma função assíncrona para buscar os dados pelo id.
             const fetchProduto = async () => {
-                const data = await getProdutoById(id);
-                // O reset é uma função do react-hook-form que redefine os valores do formulário, no caso, para os valores retornados da consulta.
-                reset(data);
-                // Se o produto já tiver uma foto, configurar a pré-visualização inicial
-                if (data.foto) {
-                    setFoto(data.foto); // Define a foto existente no estado
-                    setFotoPreview(data.foto); // define a pré-visualização da foto
+                try {
+                    const data = await getProdutoById(id);
+
+                    if (data && data.length > 0) {
+                        reset(data[0]);
+
+                        if (data[0].foto) {
+                            setImagemBase64({
+                                data: data[0].foto,
+                                type: 'image/jpeg'
+                            });
+                        }
+                    }
+                } catch (error) {
+                    console.error('Erro ao buscar produto:', error);
                 }
             };
-            // Chama a função fetchProduto para buscar os dados.
+
             fetchProduto();
         }
     }, [id, reset]);
-    
+
     const onSubmit = async (data) => {
         try {
-            // Verifica se uma nova foto foi selecionada
-            if (!foto && id) {
-                // Se não houver uma nova foto, mantém a foto existente. Envia o conteúdo em base64 já existente no banco de dados
-                const produto = await getProdutoById(id);
-                data.foto = produto.foto;
-            } else if (foto) {
-                // Se uma nova foto foi selecionada, adiciona ao objeto de dados
-                data.foto = foto;
+            const produtoData = {
+                nome: data.nome,
+                descricao: data.descricao,
+                valor_unitario: data.valor_unitario,
+                foto: imagemBase64?.data || "",
+            };
+
+            if (data.foto instanceof FileList && data.foto.length > 0) {
+                const { base64 } = await convertToBase64(data.foto[0]);
+                produtoData.foto = base64;
             }
+
             let retorno;
             if (id) {
-                retorno = await updateProduto(id, data);
+                retorno = await updateProduto(id, produtoData);
             } else {
-                retorno = await createProduto(data);
+                retorno = await createProduto(produtoData);
             }
-            // a api, nos casos de sucesso, retorna um objeto com a propriedade id.
-            if (!retorno?.id) {
-                // a api, nos casos de erro, retorna um objeto com a propriedade erro.
-                throw new Error(retorno.erro || "Erro ao salvar produto.");
+
+            const retornoDados = Array.isArray(retorno) ? retorno[0] : retorno;
+
+            if (!retornoDados || !retornoDados.id) {
+                throw new Error(retornoDados?.erro || "Erro ao salvar produto.");
             }
-            toast.success(`Produto salvo com sucesso. ID: ${retorno.id}`, { position: "top-center" });
+
+            toast.success(`Produto salvo com sucesso. ID: ${retornoDados.id}`, { position: "top-center" });
             navigate('/produtos');
         } catch (error) {
+            console.error("Erro no envio: ", error.response ? error.response.data : error.message);
             toast.error(`Erro ao salvar produto: \n${error.message}`, { position: "top-center" });
         }
     };
@@ -145,7 +135,7 @@ const ProdutoForm = () => {
                     defaultValue=""
                     rules={{ required: "Nome é obrigatório", maxLength: { value: 100, message: "Nome deve ter no máximo 100 caracteres" } }}
                     render={({ field }) => (
-                        <TextField {...field} disabled={isReadOnly} label="Nome" fullWidth margin="normal" error={!!errors.nome} helperText={errors.nome?.message} inputProps={{ maxLength: 100 }}/>
+                        <TextField {...field} disabled={isReadOnly} label="Nome" fullWidth margin="normal" error={!!errors.nome} helperText={errors.nome?.message} inputProps={{ maxLength: 100 }} />
                     )}
                 />
                 <Controller
@@ -174,26 +164,51 @@ const ProdutoForm = () => {
                 {/* O onChange é um evento que é acionado quando o valor do campo muda. */}
                 {/* O handleFileChange é uma função que lida com a mudança do valor do campo, redimensionando e comprimindo a imagem selecionada. */}
                 {/* Não utilizamos Controller, pois o estado será tratado em handleFileChange */}
-                <Box sx={{ mt: 2 }}>
-                    <Typography variant="body2" gutterBottom color='black'>Foto do Produto:</Typography>
-                    <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleFileChange}
-                        disabled={isReadOnly}
-                        style={{ marginTop: '8px' }}
-                    />
-                </Box>
-                {/* Pré-visualização da foto */}
-                {fotoPreview && (
-                    <Box sx={{ mt: 2 }}>
-                        <img src={fotoPreview} alt="Pré-visualização" style={{ maxWidth: '100%', maxHeight: '200px', borderRadius: '8px' }} />
-                    </Box>
-                )}
+                <Controller
+                    name="foto"
+                    control={control}
+                    defaultValue={null}
+                    render={({ field }) => (
+                        <Box sx={{ mt: 2 }}>
+                            <Typography variant="body1" sx={{ mb: 1 }}>Imagem do Produto</Typography>
+                            <input
+                                type="file"
+                                accept="image/*"
+                                onChange={async (e) => {
+                                    const file = e.target.files?.[0];
+                                    if (file) {
+                                        const { base64, mimeType } = await convertToBase64(file);
+                                        setImagemBase64({ data: base64, type: mimeType });
+                                        field.onChange(e); // repassa evento para RHF
+                                    }
+                                }}
+                                disabled={isReadOnly}
+                            />
+                            {errors.foto && (
+                                <Typography variant="caption" color="error">
+                                    {errors.foto.message}
+                                </Typography>
+                            )}
+
+                            {/* Pré-visualização da imagem */}
+                            {imagemBase64?.data && (
+                                <Box sx={{ mt: 2 }}>
+                                    <Typography variant="body2">Pré-visualização:</Typography>
+                                    <img
+                                        src={`data:${imagemBase64.type};base64,${imagemBase64.data}`}
+                                        alt="Imagem do Produto"
+                                        style={{ maxWidth: '100%', maxHeight: 200, borderRadius: 8, marginTop: 8 }}
+                                    />
+                                </Box>
+                            )}
+                        </Box>
+                    )}
+                />
+
                 <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 2 }}>
                     <Button onClick={() => navigate('/produtos')} sx={{ mr: 1, border: '1px solid black', color: 'black' }} variant="outlined">Cancelar</Button>
                     {opr !== 'view' && (
-                        <Button type="submit" sx={{ background: '#222222'}} variant="contained">{id ? "Atualizar" : "Cadastrar"}</Button>
+                        <Button type="submit" sx={{ background: '#222222' }} variant="contained">{id ? "Atualizar" : "Cadastrar"}</Button>
                     )}
                 </Box>
             </Box>
